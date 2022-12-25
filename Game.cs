@@ -15,31 +15,94 @@ public class GameDTO
     }
 }
 
-public class Game
+public abstract class BaseGame
 {
-    private List<GameDTO> gamehistory = new List<GameDTO>();
-    private int index = 0;
-    public void play(GameAccount winner, GameAccount loser, int Rate)
-    {
-        if (Rate < 0)
-        {
-            throw new Exception("Rating can not be negative number");
-        }
-        else if (Rate + 1 <= loser.CurrentRating)
-        {
-            winner.WinGame(loser, Rate, index);
-            loser.LoseGame(winner, Rate, index);
-            GameDTO thisgame = new GameDTO(loser, winner, Rate, index);
-            gamehistory.Add(thisgame);
-            index += 1;
-        }
-    }
-
+    public abstract string GameType();
+    
+    public List<GameDTO> gamehistory = new List<GameDTO>();
+    protected int index = 0;
+    public abstract void play(GameAccount winner, GameAccount loser, int Rate);
+    
     public void GetStats()
     {
         for (int i = 0; i < gamehistory.Count; i++)
         {
             Console.WriteLine($"Game {i}\n{gamehistory[i].winner.UserName} (+{gamehistory[i].Rate} points) won\n{gamehistory[i].loser.UserName} (-{gamehistory[i].Rate} points) lose");
         }
+    }
+}
+
+public class Game : BaseGame
+{
+    public override void play(GameAccount winner, GameAccount loser, int Rate)
+    {
+        if (Rate < 0)
+        {
+            throw new Exception("Rating can not be negative number");
+        }
+        if (Rate + 1 <= loser.CurrentRating)
+        {
+            GameDTO thisgame = new GameDTO(loser, winner, Rate, index);
+            gamehistory.Add(thisgame);
+            winner.WinGame(this);
+            loser.LoseGame(this);
+            
+            index += 1;
+        }
+    }
+
+    public override string GameType()
+    {
+        return "Game";
+    }
+}
+
+public class TrainGame : BaseGame
+{
+    public override void play(GameAccount winner, GameAccount loser, int Rate)
+    {
+        if (Rate < 0)
+        {
+            throw new Exception("Rating can not be negative number");
+        }
+        if (Rate + 1 <= loser.CurrentRating)
+        {
+            GameDTO thisgame = new GameDTO(loser, winner, 0, index);
+            gamehistory.Add(thisgame);
+            winner.WinGame(this);
+            loser.LoseGame(this);
+            
+            index += 1;
+        }
+    }
+
+    public override string GameType()
+    {
+        return "TrainGame";
+    }
+}
+
+public class DoubleRatingGame : BaseGame
+{
+    public override void play(GameAccount winner, GameAccount loser, int Rate)
+    {
+        if (Rate < 0)
+        {
+            throw new Exception("Rating can not be negative number");
+        }
+        if (2 * Rate + 1 <= loser.CurrentRating)
+        {
+            GameDTO thisgame = new GameDTO(loser, winner, 2 * Rate, index);
+            gamehistory.Add(thisgame);
+            winner.WinGame(this);
+            loser.LoseGame(this);
+
+            index += 1;
+        }
+    }
+
+    public override string GameType()
+    {
+        return "DoubleRatingGame";
     }
 }
